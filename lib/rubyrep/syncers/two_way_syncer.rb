@@ -141,33 +141,38 @@ module RR
       # Called to sync the provided difference.
       # See DirectTableScan#run for a description of the +type+ and +row+ parameters.
       def sync_difference(type, row)
-        if type == :left or type == :right
-          option_key = type == :left ? :left_record_handling : :right_record_handling
-          option = sync_helper.sync_options[option_key]
-          log_sync_outcome type, option, row unless option.respond_to?(:call)
-          if option == :ignore
-            # nothing to do
-          elsif option == :delete
-            sync_helper.delete_record type, sync_helper.tables[type], row
-          elsif option == :insert
-            target = (type == :left ? :right : :left)
-            sync_helper.insert_record target, sync_helper.tables[target], row
-          else #option must be a Proc
-            option.call sync_helper, type, row
-          end
-        else
-          option = sync_helper.sync_options[:sync_conflict_handling]
-          log_sync_outcome type, option, row unless option.respond_to?(:call)
-          if option == :ignore
-            # nothing to do
-          elsif option == :right_wins
-            sync_helper.update_record :left, sync_helper.tables[:left], row[1]
-          elsif option == :left_wins
-            sync_helper.update_record :right, sync_helper.tables[:right], row[0]
-          else #option must be a Proc
-            option.call sync_helper, type, row
+        begin
+          if type == :left or type == :right
+            option_key = type == :left ? :left_record_handling : :right_record_handling
+            option = sync_helper.sync_options[option_key]
+            log_sync_outcome type, option, row unless option.respond_to?(:call)
+            if option == :ignore
+              # nothing to do
+            elsif option == :delete
+              sync_helper.delete_record type, sync_helper.tables[type], row
+            elsif option == :insert
+              target = (type == :left ? :right : :left)
+              sync_helper.insert_record target, sync_helper.tables[target], row
+            else #option must be a Proc
+              option.call sync_helper, type, row
+            end
+          else
+            option = sync_helper.sync_options[:sync_conflict_handling]
+            log_sync_outcome type, option, row unless option.respond_to?(:call)
+            if option == :ignore
+              # nothing to do
+            elsif option == :right_wins
+              sync_helper.update_record :left, sync_helper.tables[:left], row[1]
+            elsif option == :left_wins
+              sync_helper.update_record :right, sync_helper.tables[:right], row[0]
+            else #option must be a Proc
+              option.call sync_helper, type, row
+            end
           end
         end
+      rescue => e
+#        $stderr.puts "Exception caught: #{e}"
+#        $stderr.puts e.backtrace # if options && options[:verbose]
       end
     end
   end

@@ -9,16 +9,16 @@ module RR
       # Returns an ordered list of primary key column names of the given table
       def primary_key_names(table)
         row = self.select_one(<<-end_sql)
-          select table_name from information_schema.tables 
+          select table_name from information_schema.tables
           where table_schema = database() and table_name = '#{table}'
         end_sql
         if row.nil?
           raise "table '#{table}' does not exist"
         end
-        
+
         rows = self.select_all(<<-end_sql)
           select column_name from information_schema.key_column_usage
-          where table_schema = database() and table_name = '#{table}' 
+          where table_schema = database() and table_name = '#{table}'
           and constraint_name = 'PRIMARY'
           order by ordinal_position
         end_sql

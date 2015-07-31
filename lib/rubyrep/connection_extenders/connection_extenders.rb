@@ -17,7 +17,7 @@ class ActiveRecord::ConnectionAdapters::Column
 end
 
 module RR
-  
+
   # Connection extenders provide additional database specific functionality
   # not coming in the ActiveRecord library.
   # This module itself only provides functionality to register and retrieve
@@ -29,9 +29,9 @@ module RR
       @extenders ||= {}
       @extenders
     end
-  
+
     # Registers one or multiple connection extender.
-    # extender is a Hash with 
+    # extender is a Hash with
     #   key::   The adapter symbol as used by ActiveRecord::Connection Adapters, e. g. :postgresql
     #   value:: Name of the module implementing the connection extender
     def self.register(extender)
@@ -42,11 +42,11 @@ module RR
     # Dummy ActiveRecord descendant only used to create database connections.
     class DummyActiveRecord < ActiveRecord::Base
     end
-    
+
     # Creates an ActiveRecord database connection according to the provided +config+ connection hash.
     # Possible values of this parameter are described in ActiveRecord::Base#establish_connection.
     # The database connection is extended with the correct ConnectionExtenders module.
-    # 
+    #
     # ActiveRecord only allows one database connection per class.
     # (It disconnects the existing database connection if a new connection is established.)
     # To go around this, we delete ActiveRecord's memory of the existing database connection
@@ -54,7 +54,7 @@ module RR
     def self.db_connect_without_cache(config)
       if RUBY_PLATFORM =~ /java/
         adapter = config[:adapter]
-        
+
         # As recommended in the activerecord-jdbc-adapter use the jdbc versions
         # of the Adapters. E. g. instead of "postgresql", "jdbcpostgresql".
         adapter = 'jdbc' + adapter unless adapter =~ /^jdbc/
@@ -64,10 +64,9 @@ module RR
         DummyActiveRecord.establish_connection(config)
       end
       connection = DummyActiveRecord.connection
-      
+
       # Delete the database connection from ActiveRecords's 'memory'
       ActiveRecord::Base.connection_handler.connection_pools.delete DummyActiveRecord.name
-      
       extender = ""
       if RUBY_PLATFORM =~ /java/
         extender = :jdbc
@@ -77,7 +76,7 @@ module RR
         raise "No ConnectionExtender available for :#{config[:adapter]}"
       end
       connection.extend ConnectionExtenders.extenders[extender]
-      
+
       # Hack to get Postgres schema support under JRuby to par with the standard
       # ruby version
       if RUBY_PLATFORM =~ /java/ and config[:adapter].to_sym == :postgresql
@@ -87,18 +86,18 @@ module RR
 
       replication_module = ReplicationExtenders.extenders[config[:adapter].to_sym]
       connection.extend replication_module if replication_module
-      
+
       connection
     end
-    
+
     @@use_cache = true
-    
+
     # Returns the current cache status (+true+ if caching is used; +false+ otherwise).
     def self.use_cache?; @@use_cache; end
-    
+
     # Returns the connection cache hash.
     def self.connection_cache; @@connection_cache; end
-    
+
     # Sets a new connection cache
     def self.connection_cache=(cache)
       @@connection_cache = cache
@@ -125,8 +124,8 @@ module RR
         end
       end
     end
-    
-    # Creates database connections by calling #db_connect_without_cache with the 
+
+    # Creates database connections by calling #db_connect_without_cache with the
     # provided +config+ configuration hash.
     # A new database connection is created only if no according cached connection
     # is available.
@@ -156,7 +155,7 @@ module RR
       old_status, @@use_cache = @@use_cache, status
       old_status
     end
-    
+
     # Free up all cached connections
     def self.clear_db_connection_cache
       @@connection_cache = {}

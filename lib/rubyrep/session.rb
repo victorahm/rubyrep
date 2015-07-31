@@ -5,30 +5,30 @@ module RR
   # This class represents a rubyrep session.
   # Creates and holds expensive objects like e. g. database connections.
   class Session
-    
+
     # The Configuration object provided to the initializer
     attr_accessor :configuration
-    
+
     # Returns the "left" ActiveRecord / proxy database connection
     def left
       @connections[:left]
     end
-    
+
     # Stores the "left" ActiveRecord /proxy database connection
     def left=(connection)
       @connections[:left] = connection
     end
-    
+
     # Returns the "right" ActiveRecord / proxy database connection
     def right
       @connections[:right]
     end
-    
+
     # Stores the "right" ActiveRecord / proxy database connection
     def right=(connection)
       @connections[:right] = connection
     end
-    
+
     # Hash to hold under either :left or :right the according Drb / direct DatabaseProxy
     attr_accessor :proxies
 
@@ -82,7 +82,7 @@ module RR
       end
       @table_map[db_arm][table] || table
     end
-    
+
     # Returns +true+ if proxy connections are used
     def proxied?
       [configuration.left, configuration.right].any? \
@@ -123,13 +123,11 @@ module RR
     # * +database+: target database (either +:left+ or :+right+)
     def database_unreachable?(database)
       unreachable = true
-      Thread.new do
-        begin
-          if send(database) && send(database).select_one("select 1+1 as x")['x'].to_i == 2
-            unreachable = false # database is actually reachable
-          end
-        end rescue nil
-      end.join configuration.options[:database_connection_timeout]
+      begin
+        if send(database) && send(database).select_one("select 1+1 as x")['x'].to_i == 2
+          unreachable = false # database is actually reachable
+        end
+      end rescue nil
       unreachable
     end
 
@@ -215,12 +213,12 @@ module RR
         send(database).manual_primary_keys = manual_primary_keys(database)
       end
     end
-        
+
     # Creates a new rubyrep session with the provided Configuration
     def initialize(config = Initializer::configuration)
       @connections = {:left => nil, :right => nil}
       @proxies = {:left => nil, :right => nil}
-      
+
       # Keep the database configuration for future reference
       self.configuration = config
 

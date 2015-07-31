@@ -262,9 +262,9 @@ module RR
             drop_trigger(database, table)
             session.send(database).execute(
               "delete from #{options[:rep_prefix]}_pending_changes where change_table = '#{table}'")
-          end
+      end
           clear_sequence_setup(database, table)
-        end
+    end
       end
     end
 
