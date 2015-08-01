@@ -5,3 +5,7 @@ doc/*
 website/.*\.html$
 pkg/*
 tmp/*
+/nbproject/private/
+.ruby-*
+*.log
+*.conf
